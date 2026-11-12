@@ -1,0 +1,22 @@
+type Query {
+    _health: Boolean!
+}
+
+type Mutation {
+    _noop: Boolean
+}
+
+scalar DateTime
+scalar Date
+scalar Time
+scalar Long
+
+type GeoPoint {
+    longitude: Float!
+    latitude:  Float!
+}
+
+type PageInfo {
+    hasNextPage: Boolean!
+    endCursor:   String
+}
