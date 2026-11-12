@@ -1,6 +1,6 @@
-# APIBP001 — <Project Title>
+# APIBP001 — Hospital Management System
 
-Course: SESAPZG504 - API Based Products | Section: 2024 4Y | Instructor: <instructor>
+Course: SESAPZG504 - API Based Products | Section: 2024 4Y | Instructor: Vinaya Sathyanarayan
 
 ## Team Details
 
@@ -12,9 +12,8 @@ Course: SESAPZG504 - API Based Products | Section: 2024 4Y | Instructor: <instru
 | 4   | Saanvi Singh     | 2024SL70037 | SaanviSingh12 | 2024sl70037@wilp.bits-pilani.ac.in |
 | 5   | Shivodit Gill    | 2024SL70040 | HotDogEnemy   | 2024sl70040@wilp.bits-pilani.ac.in |
 
-- Team ID: `APIBP010` (must equal the repository name and `team.json.team_id`)
+- Team ID: `APIBP010`
 - Chosen Approach: `A` — REST-First + GraphQL Layer
-  (must equal `team.json.approach`; change to `B` — GraphQL-First + REST Wrapper if chosen)
 
 ## Quick start
 
