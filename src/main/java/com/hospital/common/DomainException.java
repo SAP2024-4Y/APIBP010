@@ -17,6 +17,11 @@ public class DomainException extends RuntimeException {
         this.extras = extras;
     }
 
-    public ErrorCode getCode() { return code; }
-    public Object getExtras() { return extras; }
+    public ErrorCode getCode() {
+        return code;
+    }
+
+    public Object getExtras() {
+        return extras; 
+    }
 }
