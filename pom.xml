@@ -19,14 +19,15 @@
 
     <properties>
         <java.version>21</java.version>
+        <byte-buddy.version>1.18.10</byte-buddy.version>
         <jjwt.version>0.12.6</jjwt.version>
         <bucket4j.version>8.10.1</bucket4j.version>
         <springdoc.version>2.6.0</springdoc.version>
-        <testcontainers.version>1.20.4</testcontainers.version>
+        <testcontainers.version>1.21.0</testcontainers.version>
 
         <!-- Plugin versions -->
         <checkstyle-plugin.version>3.4.0</checkstyle-plugin.version>
-        <spotbugs-plugin.version>4.8.6.3</spotbugs-plugin.version>
+        <spotbugs-plugin.version>4.9.3.0</spotbugs-plugin.version>
 
         <!-- CI flags — overridden by -D on the command line -->
         <skipUnitTests>false</skipUnitTests>
@@ -124,13 +125,6 @@
             <version>21.0</version>
         </dependency>
 
-        <!-- Utilities -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <optional>true</optional>
-        </dependency>
-
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -162,6 +156,12 @@
             <artifactId>httpclient5</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.docker-java</groupId>
+            <artifactId>docker-java-core</artifactId>
+            <version>3.4.2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -169,14 +169,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
             </plugin>
 
             <!-- Unit tests: mvn test -Dgroups="unit"
@@ -187,6 +179,7 @@
                 <configuration>
                     <skip>${skipUnitTests}</skip>
                     <groups>${groups}</groups>
+                    <argLine>-javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
                 </configuration>
             </plugin>
 
