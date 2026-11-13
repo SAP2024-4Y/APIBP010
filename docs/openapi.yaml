@@ -1,0 +1,786 @@
+openapi: 3.0.1
+info:
+  title: Hospital Management System API
+  description: APIBP010 — REST-First + GraphQL Layer
+  version: 1.0.0
+servers:
+- url: http://localhost:8080
+  description: Generated server url
+security:
+- bearerAuth: []
+tags:
+- name: Doctor
+  description: Doctor and Department endpoints
+- name: Patient
+  description: Patient management endpoints
+- name: TimeSlot
+  description: Doctor timeslot availability endpoints
+- name: Appointment
+  description: Appointment booking and management endpoints
+- name: Hospital
+  description: Hospital management endpoints
+paths:
+  /api/v1/appointments/{id}:
+    put:
+      tags:
+      - Appointment
+      summary: Reschedule an appointment
+      operationId: reschedule
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RescheduleAppointmentRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppointmentDto"
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - Appointment
+      summary: Cancel an appointment
+      operationId: cancel
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppointmentDto"
+      security:
+      - bearerAuth: []
+  /api/v1/patients:
+    get:
+      tags:
+      - Patient
+      summary: List patients with cursor pagination
+      operationId: list
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      - name: after
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseListPatientDto"
+    post:
+      tags:
+      - Patient
+      summary: Create a new patient
+      operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePatientRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientDto"
+      security:
+      - bearerAuth: []
+  /api/v1/auth/token:
+    post:
+      tags:
+      - auth-controller
+      operationId: token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /api/v1/appointments:
+    post:
+      tags:
+      - Appointment
+      summary: Book an appointment
+      operationId: book
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookAppointmentRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppointmentDto"
+      security:
+      - bearerAuth: []
+  /health:
+    get:
+      tags:
+      - health-controller
+      operationId: health
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+  /api/v1/patients/{id}:
+    get:
+      tags:
+      - Patient
+      summary: Get patient by ID with appointment history
+      operationId: getById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientWithHistoryResponse"
+  /api/v1/hospitals:
+    get:
+      tags:
+      - Hospital
+      summary: List hospitals with optional filter and cursor pagination
+      operationId: list_1
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - ACTIVE
+          - INACTIVE
+      - name: category
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - GENERAL
+          - SPECIALTY
+          - CLINIC
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      - name: after
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseListHospitalDto"
+      security:
+      - bearerAuth: []
+  /api/v1/hospitals/{id}:
+    get:
+      tags:
+      - Hospital
+      summary: Get a hospital by ID with its departments
+      operationId: getById_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HospitalDto"
+      security:
+      - bearerAuth: []
+  /api/v1/hospitals/search:
+    get:
+      tags:
+      - Hospital
+      summary: Find hospitals within a bounding box
+      operationId: search
+      parameters:
+      - name: min_lat
+        in: query
+        required: true
+        schema:
+          type: number
+          format: double
+      - name: min_lon
+        in: query
+        required: true
+        schema:
+          type: number
+          format: double
+      - name: max_lat
+        in: query
+        required: true
+        schema:
+          type: number
+          format: double
+      - name: max_lon
+        in: query
+        required: true
+        schema:
+          type: number
+          format: double
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HospitalDto"
+      security:
+      - bearerAuth: []
+  /api/v1/hospitals/nearby:
+    get:
+      tags:
+      - Hospital
+      summary: Find hospitals within a radius (km) of a coordinate
+      operationId: nearby
+      parameters:
+      - name: latitude
+        in: query
+        required: true
+        schema:
+          type: number
+          format: double
+      - name: longitude
+        in: query
+        required: true
+        schema:
+          type: number
+          format: double
+      - name: radius_km
+        in: query
+        required: true
+        schema:
+          type: number
+          format: double
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HospitalDto"
+      security:
+      - bearerAuth: []
+  /api/v1/doctors:
+    get:
+      tags:
+      - Doctor
+      summary: "List doctors with filtering, sorting and cursor pagination"
+      operationId: getDoctors
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - ACTIVE
+          - ON_LEAVE
+          - INACTIVE
+      - name: category
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: min_price
+        in: query
+        required: false
+        schema:
+          type: number
+      - name: max_price
+        in: query
+        required: false
+        schema:
+          type: number
+      - name: sort
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: order
+        in: query
+        required: false
+        schema:
+          type: string
+          default: asc
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      - name: after
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseListDoctorDto"
+  /api/v1/doctors/{id}:
+    get:
+      tags:
+      - Doctor
+      summary: Get doctor by ID
+      operationId: getDoctor
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DoctorDto"
+  /api/v1/doctors/{id}/heatmap:
+    get:
+      tags:
+      - Doctor
+      summary: Get doctor availability heatmap for an ISO week
+      operationId: getHeatmap
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: week
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ""
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeatmapDto"
+      security:
+      - Bearer: []
+  /api/v1/doctors/{doctorId}/timeslots:
+    get:
+      tags:
+      - TimeSlot
+      summary: Get timeslots for a doctor on a given date or upcoming week
+      operationId: getTimeslots
+      parameters:
+      - name: doctorId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: date
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TimeSlotDto"
+  /api/v1/doctors/{doctorId}/appointments:
+    get:
+      tags:
+      - Appointment
+      summary: "Calendar API: list appointments for a doctor in a time window"
+      operationId: getByDoctorAndWindow
+      parameters:
+      - name: doctorId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: starts_at
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: ends_at
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AppointmentDto"
+  /api/v1/departments:
+    get:
+      tags:
+      - Doctor
+      summary: List all departments
+      operationId: getDepartments
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DepartmentDto"
+components:
+  schemas:
+    RescheduleAppointmentRequest:
+      required:
+      - endsAt
+      - startsAt
+      type: object
+      properties:
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+    AppointmentDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        doctorId:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+        type:
+          type: string
+        notes:
+          type: string
+    CreatePatientRequest:
+      required:
+      - name
+      type: object
+      properties:
+        name:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        contact:
+          type: string
+        email:
+          type: string
+    PatientDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        contact:
+          type: string
+        email:
+          type: string
+        status:
+          type: string
+    AuthRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+    BookAppointmentRequest:
+      required:
+      - doctorId
+      - endsAt
+      - patientId
+      - startsAt
+      type: object
+      properties:
+        doctorId:
+          type: string
+          format: uuid
+        patientId:
+          type: string
+          format: uuid
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        type:
+          type: string
+        notes:
+          type: string
+    ApiResponseListPatientDto:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/PatientDto"
+        has_more:
+          type: boolean
+        next_cursor:
+          type: string
+    PatientWithHistoryResponse:
+      type: object
+      properties:
+        patient:
+          $ref: "#/components/schemas/PatientDto"
+        appointments:
+          type: array
+          items:
+            $ref: "#/components/schemas/AppointmentDto"
+    ApiResponseListHospitalDto:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/HospitalDto"
+        has_more:
+          type: boolean
+        next_cursor:
+          type: string
+    DepartmentDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        category:
+          type: string
+        hospitalId:
+          type: string
+          format: uuid
+        status:
+          type: string
+    HospitalDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        address:
+          type: string
+        type:
+          type: string
+        status:
+          type: string
+        location:
+          type: array
+          items:
+            type: number
+            format: double
+        departments:
+          type: array
+          items:
+            $ref: "#/components/schemas/DepartmentDto"
+    ApiResponseListDoctorDto:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/DoctorDto"
+        has_more:
+          type: boolean
+        next_cursor:
+          type: string
+    DoctorDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        specialization:
+          type: string
+        consultationFee:
+          type: number
+        status:
+          type: string
+        departmentId:
+          type: string
+          format: uuid
+        location:
+          type: array
+          items:
+            type: number
+            format: double
+    HeatmapDto:
+      type: object
+      properties:
+        doctorId:
+          type: string
+          format: uuid
+        week:
+          type: string
+        grid:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: integer
+              format: int32
+    LocalTime:
+      type: object
+      properties:
+        hour:
+          type: integer
+          format: int32
+        minute:
+          type: integer
+          format: int32
+        second:
+          type: integer
+          format: int32
+        nano:
+          type: integer
+          format: int32
+    TimeSlotDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        doctorId:
+          type: string
+          format: uuid
+        slotDate:
+          type: string
+          format: date
+        startTime:
+          $ref: "#/components/schemas/LocalTime"
+        endTime:
+          $ref: "#/components/schemas/LocalTime"
+        isAvailable:
+          type: boolean
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
