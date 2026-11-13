@@ -28,6 +28,11 @@ type TimeSlot {
     isAvailable: Boolean!
 }
 
+type AppointmentSuggestion {
+    startsAt: DateTime!
+    endsAt: DateTime!
+}
+
 type PatientEdge {
     node: Patient!
     cursor: String!

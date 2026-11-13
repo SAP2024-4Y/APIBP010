@@ -10,6 +10,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Tag("integration")
@@ -48,4 +50,37 @@ class AuthTokenTest extends BaseIntegrationTest {
                 String.class);
         assertThat(response.getStatusCode().value()).isEqualTo(401);
     }
+
+    @Test
+    void malformedTokenReturns401() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth("this.is.not.a.valid.jwt");
+        var response = rest.postForEntity(
+                "/api/v1/appointments",
+                new HttpEntity<>(null, headers),
+                String.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(401);
+    }
+
+    @Test
+    void userTokenOnAdminOnlyEndpointReturns403() {
+        // POST /api/v1/patients requires ROLE_ADMIN; the demo token grants ROLE_USER.
+        // JwtFilter sets authority "ROLE_USER", so Spring Security fires accessDeniedHandler.
+        String token = rest.postForEntity(
+                "/api/v1/auth/token",
+                new AuthRequest("demo", "demo-password"),
+                AuthResponse.class
+        ).getBody().token();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(token);
+
+        var response = rest.postForEntity(
+                "/api/v1/patients",
+                new HttpEntity<>(Map.of("name", "Test Patient"), headers),
+                String.class);
+        assertThat(response.getStatusCode().value()).isEqualTo(403);
+    }
 }
+

@@ -36,6 +36,11 @@ type Appointment {
   type: String!
 }
 
+type AppointmentSuggestion {
+  endsAt: DateTime!
+  startsAt: DateTime!
+}
+
 type Department {
   category: String!
   hospitalId: ID!
