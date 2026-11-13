@@ -9,7 +9,6 @@ type Mutation {
 scalar DateTime
 scalar Date
 scalar Time
-scalar Long
 
 type GeoPoint {
     longitude: Float!

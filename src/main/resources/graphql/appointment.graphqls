@@ -28,11 +28,6 @@ type TimeSlot {
     isAvailable: Boolean!
 }
 
-type AppointmentSuggestion {
-    startsAt: DateTime!
-    endsAt: DateTime!
-}
-
 type PatientEdge {
     node: Patient!
     cursor: String!
@@ -52,6 +47,7 @@ extend type Query {
 
     patient(id: ID!): Patient
     patients(first: Int, after: String, status: String): PatientConnection!
+    timeslots(doctorId: ID!, date: String): [TimeSlot!]!
 }
 
 extend type Mutation {

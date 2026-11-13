@@ -1,0 +1,173 @@
+"Marks the field, argument, input field or enum value as deprecated"
+directive @deprecated(
+    "The reason for the deprecation"
+    reason: String = "No longer supported"
+  ) on FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM_VALUE | INPUT_FIELD_DEFINITION
+
+"Directs the executor to include this field or fragment only when the `if` argument is true"
+directive @include(
+    "Included when true."
+    if: Boolean!
+  ) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"Indicates an Input Object is a OneOf Input Object."
+directive @oneOf on INPUT_OBJECT
+
+"Directs the executor to skip this field or fragment when the `if` argument is true."
+directive @skip(
+    "Skipped when true."
+    if: Boolean!
+  ) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"Exposes a URL that specifies the behaviour of this scalar."
+directive @specifiedBy(
+    "The URL that specifies the behaviour of this scalar."
+    url: String!
+  ) on SCALAR
+
+type Appointment {
+  doctor: Doctor
+  endsAt: DateTime!
+  id: ID!
+  notes: String
+  patient: Patient
+  startsAt: DateTime!
+  status: String!
+  type: String!
+}
+
+type Department {
+  category: String!
+  hospitalId: ID!
+  id: ID!
+  name: String!
+  status: String!
+}
+
+type Doctor {
+  consultationFee: Float!
+  department: Department
+  id: ID!
+  location: GeoPoint
+  name: String!
+  specialization: String!
+  status: String!
+}
+
+type DoctorConnection {
+  edges: [DoctorEdge!]!
+  pageInfo: PageInfo!
+}
+
+type DoctorEdge {
+  cursor: String!
+  node: Doctor!
+}
+
+type DoctorHeatmap {
+  doctorId: ID!
+  grid: HeatmapGrid!
+  week: String!
+}
+
+type GeoPoint {
+  latitude: Float!
+  longitude: Float!
+}
+
+type HeatmapGrid {
+  FRI: [Int!]!
+  MON: [Int!]!
+  SAT: [Int!]!
+  SUN: [Int!]!
+  THU: [Int!]!
+  TUE: [Int!]!
+  WED: [Int!]!
+}
+
+type Hospital {
+  address: String
+  departments: [Department!]
+  id: ID!
+  location: GeoPoint
+  name: String!
+  status: String!
+  type: String!
+}
+
+type HospitalConnection {
+  edges: [HospitalEdge!]!
+  pageInfo: PageInfo!
+}
+
+type HospitalEdge {
+  cursor: String!
+  node: Hospital!
+}
+
+type Mutation {
+  _noop: Boolean
+  bookAppointment(doctorId: ID!, endsAt: DateTime!, notes: String, patientId: ID!, startsAt: DateTime!, type: String): Appointment!
+  cancelAppointment(id: ID!): Appointment!
+  rescheduleAppointment(endsAt: DateTime!, id: ID!, startsAt: DateTime!): Appointment!
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+}
+
+type Patient {
+  appointments: [Appointment!]!
+  contact: String
+  dateOfBirth: String
+  email: String
+  id: ID!
+  name: String!
+  status: String!
+}
+
+type PatientConnection {
+  edges: [PatientEdge!]!
+  pageInfo: PageInfo!
+}
+
+type PatientEdge {
+  cursor: String!
+  node: Patient!
+}
+
+type Query {
+  _health: Boolean!
+  appointments(doctorId: ID!, endsAt: DateTime, startsAt: DateTime): [Appointment!]!
+  departments: [Department!]!
+  doctor(id: ID!): Doctor
+  doctorHeatmap(doctorId: ID!, week: String!): DoctorHeatmap
+  doctors(after: String, category: String, first: Int, maxPrice: Float, minPrice: Float, order: String, sort: String, status: String): DoctorConnection!
+  doctorsBySpecialty(specialty: String!): [Doctor!]! @deprecated(reason : "Use doctors(category:) filter instead")
+  hospital(id: ID!): Hospital
+  hospitals(after: String, category: String, first: Int, status: String): HospitalConnection!
+  hospitalsInBox(maxLat: Float!, maxLon: Float!, minLat: Float!, minLon: Float!): [Hospital!]!
+  hospitalsNearby(latitude: Float!, longitude: Float!, radiusKm: Float!): [Hospital!]!
+  patient(id: ID!): Patient
+  patients(after: String, first: Int, status: String): PatientConnection!
+  timeslots(date: String, doctorId: ID!): [TimeSlot!]!
+}
+
+type TimeSlot {
+  date: String!
+  doctorId: ID!
+  endTime: String!
+  id: ID!
+  isAvailable: Boolean!
+  startTime: String!
+}
+
+"An RFC-3339 compliant Full Date Scalar"
+scalar Date
+
+"A slightly refined version of RFC-3339 compliant DateTime Scalar"
+scalar DateTime
+
+"An RFC-3339 compliant Full Time Scalar"
+scalar Time

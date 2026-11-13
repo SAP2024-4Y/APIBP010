@@ -5,7 +5,7 @@ type Hospital {
     type: String!
     status: String!
     location: GeoPoint
-    departments: [Department]
+    departments: [Department!]
 }
 
 type HospitalEdge {
