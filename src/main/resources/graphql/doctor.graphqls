@@ -1,0 +1,64 @@
+type Doctor {
+    id: ID!
+    name: String!
+    specialization: String!
+    consultationFee: Float!
+    status: String!
+    department: Department
+    location: GeoPoint
+}
+
+type Department {
+    id: ID!
+    name: String!
+    category: String!
+    hospitalId: ID!
+}
+
+type DoctorEdge {
+    node: Doctor!
+    cursor: String!
+}
+
+type DoctorConnection {
+    edges: [DoctorEdge!]!
+    pageInfo: PageInfo!
+}
+
+type HeatmapGrid {
+    MON: [Int!]!
+    TUE: [Int!]!
+    WED: [Int!]!
+    THU: [Int!]!
+    FRI: [Int!]!
+    SAT: [Int!]!
+    SUN: [Int!]!
+}
+
+type DoctorHeatmap {
+    doctorId: ID!
+    week: String!
+    grid: HeatmapGrid!
+}
+
+extend type Query {
+    doctors(
+        first: Int
+        after: String
+        status: String
+        category: String
+        minPrice: Float
+        maxPrice: Float
+        sort: String
+        order: String
+    ): DoctorConnection!
+
+    doctor(id: ID!): Doctor
+
+    departments: [Department!]!
+
+    doctorHeatmap(doctorId: ID!, week: String!): DoctorHeatmap
+
+    doctorsBySpecialty(specialty: String!): [Doctor!]!
+        @deprecated(reason: "Use doctors(category:) filter instead")
+}
