@@ -32,6 +32,7 @@ public class SecurityConfig {
                                  "/v3/api-docs/**", "/v3/api-docs").permitAll()
                 .requestMatchers("/graphql", "/graphiql", "/graphiql/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/auth/token").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/doctors/*/appointments").permitAll()
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex
