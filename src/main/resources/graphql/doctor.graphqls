@@ -13,6 +13,7 @@ type Department {
     name: String!
     category: String!
     hospitalId: ID!
+    status: String!
 }
 
 type DoctorEdge {
