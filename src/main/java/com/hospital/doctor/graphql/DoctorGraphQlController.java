@@ -45,7 +45,8 @@ public class DoctorGraphQlController {
         BigDecimal min = minPrice != null ? BigDecimal.valueOf(minPrice) : null;
         BigDecimal max = maxPrice != null ? BigDecimal.valueOf(maxPrice) : null;
 
-        ApiResponse<List<DoctorDto>> response = doctorService.list(doctorStatus, category, min, max, sort, order, limit, after);
+        ApiResponse<List<DoctorDto>> response =
+                doctorService.list(doctorStatus, category, min, max, sort, order, limit, after);
 
         List<Map<String, Object>> edges = response.data().stream()
                 .map(d -> Map.<String, Object>of(
@@ -84,7 +85,9 @@ public class DoctorGraphQlController {
 
     @SchemaMapping(typeName = "Doctor", field = "department")
     public DepartmentDto department(DoctorDto doctor) {
-        if (doctor.departmentId() == null) return null;
+        if (doctor.departmentId() == null) {
+            return null;
+        }
         return departmentService.findByIds(List.of(doctor.departmentId())).get(doctor.departmentId());
     }
 

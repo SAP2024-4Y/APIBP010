@@ -22,7 +22,12 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.IsoFields;
 import java.time.temporal.TemporalAdjusters;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -44,7 +49,7 @@ public class DoctorService {
 
     public Map<UUID, DoctorDto> findByIds(List<UUID> ids) {
         return doctorRepository.findByIdIn(ids).stream()
-                .collect(java.util.stream.Collectors.toMap(Doctor::getId, DoctorDto::from));
+                .collect(Collectors.toMap(Doctor::getId, DoctorDto::from));
     }
 
     public ApiResponse<List<DoctorDto>> list(
@@ -60,14 +65,15 @@ public class DoctorService {
         String effectiveSort = (sortField != null && !sortField.isBlank()) ? sortField : "id";
         boolean asc = !"desc".equalsIgnoreCase(order);
 
-        // Decode cursor: "<lastId>|<lastSortValue>"
         String lastId = null;
         String lastSortValue = null;
         if (afterCursor != null && !afterCursor.isBlank()) {
             String decoded = CursorUtils.decode(afterCursor);
             String[] parts = decoded.split("\\|", 2);
             lastId = parts[0];
-            if (parts.length > 1) lastSortValue = parts[1];
+            if (parts.length > 1) {
+                lastSortValue = parts[1];
+            }
         }
 
         final String fLastId = lastId;
@@ -76,15 +82,20 @@ public class DoctorService {
         Specification<Doctor> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (status != null) predicates.add(cb.equal(root.get("status"), status));
-            if (category != null && !category.isBlank())
+            if (status != null) {
+                predicates.add(cb.equal(root.get("status"), status));
+            }
+            if (category != null && !category.isBlank()) {
                 predicates.add(cb.equal(root.get("specialization"), category));
-            if (minPrice != null) predicates.add(cb.greaterThanOrEqualTo(root.get("consultationFee"), minPrice));
-            if (maxPrice != null) predicates.add(cb.lessThanOrEqualTo(root.get("consultationFee"), maxPrice));
+            }
+            if (minPrice != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("consultationFee"), minPrice));
+            }
+            if (maxPrice != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("consultationFee"), maxPrice));
+            }
 
-            // Keyset pagination
             if (fLastId != null && fLastSortValue != null && !"id".equals(effectiveSort)) {
-                // e.g. (sortField > lastSortValue) OR (sortField = lastSortValue AND id > lastId)
                 Predicate gt = asc
                         ? cb.greaterThan(root.get(effectiveSort).as(String.class), fLastSortValue)
                         : cb.lessThan(root.get(effectiveSort).as(String.class), fLastSortValue);
@@ -106,7 +117,6 @@ public class DoctorService {
         Sort sort = Sort.by(asc ? Sort.Direction.ASC : Sort.Direction.DESC, effectiveSort)
                 .and(Sort.by(asc ? Sort.Direction.ASC : Sort.Direction.DESC, "id"));
 
-        // Fetch limit+1 to detect has_more
         List<Doctor> results = doctorRepository.findAll(spec, sort).stream()
                 .limit(limit + 1L)
                 .toList();
@@ -135,14 +145,13 @@ public class DoctorService {
     }
 
     public HeatmapDto heatmap(UUID doctorId, String weekParam) {
-        // Verify doctor exists
         doctorRepository.findById(doctorId)
                 .orElseThrow(() -> new DomainException(ErrorCode.DOCTOR_NOT_FOUND, "Doctor not found: " + doctorId));
 
-        // Parse ISO week e.g. "2026-W48"
         String[] parts = weekParam.split("-W");
         if (parts.length != 2) {
-            throw new DomainException(ErrorCode.INVALID_DATE_RANGE, "Invalid week format. Use YYYY-Www e.g. 2026-W48");
+            throw new DomainException(ErrorCode.INVALID_DATE_RANGE,
+                    "Invalid week format. Use YYYY-Www e.g. 2026-W48");
         }
         int year = Integer.parseInt(parts[0]);
         int week = Integer.parseInt(parts[1]);
@@ -154,13 +163,16 @@ public class DoctorService {
 
         List<TimeSlot> slots = timeSlotRepository.findByDoctorIdAndSlotDateBetween(doctorId, monday, sunday);
 
-        // Build 7x24 grid — all zeros initially
         String[] dayKeys = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
         Map<String, int[]> grid = new LinkedHashMap<>();
-        for (String key : dayKeys) grid.put(key, new int[24]);
+        for (String key : dayKeys) {
+            grid.put(key, new int[24]);
+        }
 
         for (TimeSlot slot : slots) {
-            if (!slot.isAvailable()) continue;
+            if (!slot.isAvailable()) {
+                continue;
+            }
             DayOfWeek dow = slot.getSlotDate().getDayOfWeek();
             String key = dow.name().substring(0, 3);
             int hour = slot.getStartTime().getHour();
