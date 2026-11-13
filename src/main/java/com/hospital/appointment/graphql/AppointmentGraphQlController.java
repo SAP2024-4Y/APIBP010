@@ -10,12 +10,15 @@ import com.hospital.doctor.dto.DoctorDto;
 import com.hospital.doctor.service.DoctorService;
 import com.hospital.patient.dto.PatientDto;
 import com.hospital.patient.service.PatientService;
+import com.hospital.timeslot.dto.TimeSlotDto;
+import com.hospital.timeslot.service.TimeSlotService;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -27,14 +30,17 @@ public class AppointmentGraphQlController {
     private final AppointmentService appointmentService;
     private final PatientService patientService;
     private final DoctorService doctorService;
+    private final TimeSlotService timeSlotService;
 
     public AppointmentGraphQlController(
             AppointmentService appointmentService,
             PatientService patientService,
-            DoctorService doctorService) {
+            DoctorService doctorService,
+            TimeSlotService timeSlotService) {
         this.appointmentService = appointmentService;
         this.patientService = patientService;
         this.doctorService = doctorService;
+        this.timeSlotService = timeSlotService;
     }
 
     @QueryMapping
@@ -124,5 +130,28 @@ public class AppointmentGraphQlController {
     @SchemaMapping(typeName = "Patient", field = "appointments")
     public List<AppointmentDto> patientAppointments(PatientDto patient) {
         return appointmentService.findByPatient(patient.id());
+    }
+
+    @QueryMapping
+    public List<TimeSlotDto> timeslots(@Argument String doctorId, @Argument String date) {
+        LocalDate slotDate = date != null ? LocalDate.parse(date) : null;
+        return timeSlotService.findByDoctorAndDate(UUID.fromString(doctorId), slotDate);
+    }
+
+    // TimeSlotDto.slotDate (LocalDate) → TimeSlot.date (String) — name and type differ
+    @SchemaMapping(typeName = "TimeSlot", field = "date")
+    public String timeSlotDate(TimeSlotDto ts) {
+        return ts.slotDate() != null ? ts.slotDate().toString() : null;
+    }
+
+    // LocalTime coerces to ISO string explicitly to avoid type mismatch at GraphQL runtime
+    @SchemaMapping(typeName = "TimeSlot", field = "startTime")
+    public String timeSlotStartTime(TimeSlotDto ts) {
+        return ts.startTime() != null ? ts.startTime().toString() : null;
+    }
+
+    @SchemaMapping(typeName = "TimeSlot", field = "endTime")
+    public String timeSlotEndTime(TimeSlotDto ts) {
+        return ts.endTime() != null ? ts.endTime().toString() : null;
     }
 }
