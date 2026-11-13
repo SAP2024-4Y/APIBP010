@@ -48,5 +48,5 @@ docker compose --profile test run --rm test \
 
 ```bash
 curl -H "Authorization: Bearer <token>" \
-     "http://localhost:8080/api/v1/<your-resource>?limit=10&after=<cursor>&status=<x>&sort=id&order=asc"
+     "http://localhost:8080/api/v1/doctors?first=10&after=<cursor>&status=ACTIVE&sort=id&order=asc"
 ```
