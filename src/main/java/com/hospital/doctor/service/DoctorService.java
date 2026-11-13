@@ -12,6 +12,7 @@ import com.hospital.doctor.repository.DoctorRepository;
 import com.hospital.timeslot.entity.TimeSlot;
 import com.hospital.timeslot.repository.TimeSlotRepository;
 import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import java.time.LocalDate;
 import java.time.temporal.IsoFields;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +80,7 @@ public class DoctorService {
 
         final String fLastId = lastId;
         final String fLastSortValue = lastSortValue;
+        final String fEffectiveSort = effectiveSort;
 
         Specification<Doctor> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -95,16 +98,30 @@ public class DoctorService {
                 predicates.add(cb.lessThanOrEqualTo(root.get("consultationFee"), maxPrice));
             }
 
-            if (fLastId != null && fLastSortValue != null && !"id".equals(effectiveSort)) {
-                Predicate gt = asc
-                        ? cb.greaterThan(root.get(effectiveSort).as(String.class), fLastSortValue)
-                        : cb.lessThan(root.get(effectiveSort).as(String.class), fLastSortValue);
-                Predicate eqAndGtId = cb.and(
-                        cb.equal(root.get(effectiveSort).as(String.class), fLastSortValue),
-                        asc ? cb.greaterThan(root.get("id").as(String.class), fLastId)
-                            : cb.lessThan(root.get("id").as(String.class), fLastId)
-                );
-                predicates.add(cb.or(gt, eqAndGtId));
+            if (fLastId != null && fLastSortValue != null && !"id".equals(fEffectiveSort)) {
+                // Use typed comparison for BigDecimal fields
+                if ("consultationFee".equals(fEffectiveSort) || "consultation_fee".equals(fEffectiveSort)) {
+                    BigDecimal lastVal = new BigDecimal(fLastSortValue);
+                    Predicate gt = asc
+                            ? cb.greaterThan(root.get("consultationFee"), lastVal)
+                            : cb.lessThan(root.get("consultationFee"), lastVal);
+                    Predicate eqAndGtId = cb.and(
+                            cb.equal(root.get("consultationFee"), lastVal),
+                            asc ? cb.greaterThan(root.get("id").as(String.class), fLastId)
+                                : cb.lessThan(root.get("id").as(String.class), fLastId)
+                    );
+                    predicates.add(cb.or(gt, eqAndGtId));
+                } else {
+                    Predicate gt = asc
+                            ? cb.greaterThan(root.get(fEffectiveSort).as(String.class), fLastSortValue)
+                            : cb.lessThan(root.get(fEffectiveSort).as(String.class), fLastSortValue);
+                    Predicate eqAndGtId = cb.and(
+                            cb.equal(root.get(fEffectiveSort).as(String.class), fLastSortValue),
+                            asc ? cb.greaterThan(root.get("id").as(String.class), fLastId)
+                                : cb.lessThan(root.get("id").as(String.class), fLastId)
+                    );
+                    predicates.add(cb.or(gt, eqAndGtId));
+                }
             } else if (fLastId != null) {
                 predicates.add(asc
                         ? cb.greaterThan(root.get("id").as(String.class), fLastId)
@@ -117,9 +134,8 @@ public class DoctorService {
         Sort sort = Sort.by(asc ? Sort.Direction.ASC : Sort.Direction.DESC, effectiveSort)
                 .and(Sort.by(asc ? Sort.Direction.ASC : Sort.Direction.DESC, "id"));
 
-        List<Doctor> results = doctorRepository.findAll(spec, sort).stream()
-                .limit(limit + 1L)
-                .toList();
+        // Fetch limit+1 at DB level to detect has_more without loading full table
+        List<Doctor> results = doctorRepository.findAll(spec, PageRequest.of(0, limit + 1, sort)).getContent();
 
         boolean hasMore = results.size() > limit;
         List<Doctor> page = hasMore ? results.subList(0, limit) : results;
@@ -164,9 +180,11 @@ public class DoctorService {
         List<TimeSlot> slots = timeSlotRepository.findByDoctorIdAndSlotDateBetween(doctorId, monday, sunday);
 
         String[] dayKeys = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
-        Map<String, int[]> grid = new LinkedHashMap<>();
+        Map<String, List<Integer>> grid = new LinkedHashMap<>();
         for (String key : dayKeys) {
-            grid.put(key, new int[24]);
+            Integer[] hours = new Integer[24];
+            Arrays.fill(hours, 0);
+            grid.put(key, new ArrayList<>(Arrays.asList(hours)));
         }
 
         for (TimeSlot slot : slots) {
@@ -176,7 +194,7 @@ public class DoctorService {
             DayOfWeek dow = slot.getSlotDate().getDayOfWeek();
             String key = dow.name().substring(0, 3);
             int hour = slot.getStartTime().getHour();
-            grid.get(key)[hour] = 1;
+            grid.get(key).set(hour, 1);
         }
 
         return new HeatmapDto(doctorId, weekParam, grid);

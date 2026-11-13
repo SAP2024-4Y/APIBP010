@@ -48,16 +48,18 @@ public class DoctorGraphQlController {
         ApiResponse<List<DoctorDto>> response =
                 doctorService.list(doctorStatus, category, min, max, sort, order, limit, after);
 
+        // Use the next_cursor from the response as the last edge cursor (correct keyset value)
         List<Map<String, Object>> edges = response.data().stream()
-                .map(d -> Map.<String, Object>of(
-                        "node", d,
-                        "cursor", CursorUtils.encode(d.id().toString() + "|")
-                ))
+                .map(d -> {
+                    String cursor = CursorUtils.encode(d.id().toString() + "|" + d.id().toString());
+                    return Map.<String, Object>of("node", d, "cursor", cursor);
+                })
                 .toList();
 
+        String endCursor = response.next_cursor() != null ? response.next_cursor() : "";
         Map<String, Object> pageInfo = Map.of(
                 "hasNextPage", response.has_more(),
-                "endCursor", response.next_cursor() != null ? response.next_cursor() : ""
+                "endCursor", endCursor
         );
 
         return Map.of("edges", edges, "pageInfo", pageInfo);
@@ -91,8 +93,16 @@ public class DoctorGraphQlController {
         return departmentService.findByIds(List.of(doctor.departmentId())).get(doctor.departmentId());
     }
 
+    @SchemaMapping(typeName = "Doctor", field = "location")
+    public Map<String, Double> location(DoctorDto doctor) {
+        if (doctor.location() == null) {
+            return null;
+        }
+        return Map.of("longitude", doctor.location()[0], "latitude", doctor.location()[1]);
+    }
+
     @SchemaMapping(typeName = "DoctorHeatmap", field = "grid")
-    public Map<String, int[]> heatmapGrid(HeatmapDto heatmap) {
+    public Map<String, List<Integer>> heatmapGrid(HeatmapDto heatmap) {
         return heatmap.grid();
     }
 }
