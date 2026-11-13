@@ -36,8 +36,12 @@ POST /api/v1/auth/token  { "username": "demo", "password": "demo-password" }
 ## Run tests
 
 ```bash
-# <document the exact command, e.g.:>
-docker compose run --rm app npm test
+# Unit tests (no DB, fast)
+docker compose --profile test run --rm test
+
+# Integration tests (Testcontainers spins up its own PostgreSQL via Docker socket)
+docker compose --profile test run --rm test \
+  mvn --batch-mode verify -Dgroups=integration -DskipUnitTests=true
 ```
 
 ## Sample REST call
