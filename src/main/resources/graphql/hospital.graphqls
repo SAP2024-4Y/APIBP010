@@ -1,0 +1,43 @@
+type Hospital {
+    id: ID!
+    name: String!
+    address: String
+    type: String!
+    status: String!
+    location: GeoPoint
+    departments: [Department]
+}
+
+type HospitalEdge {
+    node: Hospital!
+    cursor: String!
+}
+
+type HospitalConnection {
+    edges: [HospitalEdge!]!
+    pageInfo: PageInfo!
+}
+
+extend type Query {
+    hospitals(
+        first: Int
+        after: String
+        status: String
+        category: String
+    ): HospitalConnection!
+
+    hospital(id: ID!): Hospital
+
+    hospitalsNearby(
+        latitude: Float!
+        longitude: Float!
+        radiusKm: Float!
+    ): [Hospital!]!
+
+    hospitalsInBox(
+        minLat: Float!
+        minLon: Float!
+        maxLat: Float!
+        maxLon: Float!
+    ): [Hospital!]!
+}

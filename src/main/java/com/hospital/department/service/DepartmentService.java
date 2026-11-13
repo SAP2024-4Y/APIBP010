@@ -31,4 +31,10 @@ public class DepartmentService {
         return departmentRepository.findByIdIn(ids).stream()
                 .collect(Collectors.toMap(Department::getId, DepartmentDto::from));
     }
+
+    public List<DepartmentDto> findByHospitalId(UUID hospitalId) {
+        return departmentRepository.findByHospitalId(hospitalId).stream()
+                .map(DepartmentDto::from)
+                .toList();
+    }
 }
