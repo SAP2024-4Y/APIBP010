@@ -9,9 +9,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.locationtech.jts.geom.Point;
 
 import java.time.OffsetDateTime;
@@ -19,9 +16,6 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "hospitals")
-@Getter
-@Setter
-@NoArgsConstructor
 public class Hospital {
 
     @Id
@@ -53,5 +47,63 @@ public class Hospital {
         if (createdAt == null) {
             createdAt = OffsetDateTime.now();
         }
+    }
+
+    public Hospital() {}
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public HospitalType getHospitalType() {
+        return hospitalType;
+    }
+
+    public void setHospitalType(HospitalType hospitalType) {
+        this.hospitalType = hospitalType;
+    }
+
+    public HospitalStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(HospitalStatus status) {
+        this.status = status;
+    }
+
+    public Point getLocation() {
+        return location;
+    }
+
+    public void setLocation(Point location) {
+        this.location = location;
+    }
+
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

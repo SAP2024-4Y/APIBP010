@@ -1,0 +1,74 @@
+type Patient {
+    id: ID!
+    name: String!
+    dateOfBirth: String
+    contact: String
+    email: String
+    status: String!
+    appointments: [Appointment!]!
+}
+
+type Appointment {
+    id: ID!
+    doctor: Doctor
+    patient: Patient
+    startsAt: DateTime!
+    endsAt: DateTime!
+    status: String!
+    type: String!
+    notes: String
+}
+
+type TimeSlot {
+    id: ID!
+    doctorId: ID!
+    date: String!
+    startTime: String!
+    endTime: String!
+    isAvailable: Boolean!
+}
+
+type AppointmentSuggestion {
+    startsAt: DateTime!
+    endsAt: DateTime!
+}
+
+type PatientEdge {
+    node: Patient!
+    cursor: String!
+}
+
+type PatientConnection {
+    edges: [PatientEdge!]!
+    pageInfo: PageInfo!
+}
+
+extend type Query {
+    appointments(
+        doctorId: ID!
+        startsAt: DateTime
+        endsAt: DateTime
+    ): [Appointment!]!
+
+    patient(id: ID!): Patient
+    patients(first: Int, after: String, status: String): PatientConnection!
+}
+
+extend type Mutation {
+    bookAppointment(
+        doctorId: ID!
+        patientId: ID!
+        startsAt: DateTime!
+        endsAt: DateTime!
+        type: String
+        notes: String
+    ): Appointment!
+
+    cancelAppointment(id: ID!): Appointment!
+
+    rescheduleAppointment(
+        id: ID!
+        startsAt: DateTime!
+        endsAt: DateTime!
+    ): Appointment!
+}

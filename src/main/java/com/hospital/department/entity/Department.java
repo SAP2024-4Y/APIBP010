@@ -6,17 +6,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.UUID;
 
 @Entity
 @Table(name = "departments")
-@Getter
-@Setter
-@NoArgsConstructor
 public class Department {
 
     @Id
@@ -34,4 +28,46 @@ public class Department {
 
     @Column(nullable = false, length = 50)
     private String status;
+
+    public Department() {}
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public UUID getHospitalId() {
+        return hospitalId;
+    }
+
+    public void setHospitalId(UUID hospitalId) {
+        this.hospitalId = hospitalId;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }
