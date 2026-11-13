@@ -15,8 +15,8 @@ public class HealthController {
         return ResponseEntity.ok(Map.of("status", "ok"));
     }
 
-    @QueryMapping
-    public boolean _health() {
+    @QueryMapping("_health")
+    public boolean graphqlHealth() {
         return true;
     }
 }

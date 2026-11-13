@@ -32,7 +32,9 @@ public class GlobalExceptionHandler extends DataFetcherExceptionResolverAdapter 
 
     @Override
     protected GraphQLError resolveToSingleError(Throwable ex, DataFetchingEnvironment env) {
-        if (!(ex instanceof DomainException de)) return null;
+        if (!(ex instanceof DomainException de)) {
+            return null;
+        }
 
         Map<String, Object> extensions = new LinkedHashMap<>();
         extensions.put("code", de.getCode().name());
