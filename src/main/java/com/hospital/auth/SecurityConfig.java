@@ -33,6 +33,8 @@ public class SecurityConfig {
                 .requestMatchers("/graphql", "/graphiql", "/graphiql/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/auth/token").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/doctors/*/appointments").permitAll()
+                // Patient creation is restricted to ROLE_ADMIN; other patient reads require only auth
+                .requestMatchers(HttpMethod.POST, "/api/v1/patients").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex
